@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pH Simulator</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+   /* Add these styles for the header content */
+.header-container {
+    background: white;
+    padding: 30px 40px;  /* Increased padding for more space */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    text-align: left;  /* Changed to left alignment for instructions */
+}
+
+.header-container h1 {
+    color: #333;
+    margin-bottom: 15px;
+    font-size: 24px;
+    text-align: center;  /* Keep title centered */
+}
+
+.header-container .subtitle {
+    color: #666;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+    text-align: center;  /* Keep subtitle centered */
+}
+
+.header-container h2 {
+    color: #444;
+    margin: 20px 0 15px 0;
+    font-size: 18px;
+}
+
+.header-container ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.header-container li {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.header-container ul {
+    margin: 5px 0;
+    padding-left: 40px;
+}
+
+.header-container strong {
+    color: #333;
+}
+      
+      
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 300px 300px 600px;
+    gap: 20px;
+    max-width: 1400px;
+    grid-template-areas: 
+        "header header header"
+        "items beaker scale";
+}
+
+.header-container {
+    grid-area: header;
+}
+
+
+       .panel {
+    background: #fafafa;
+    padding: 20px 30px;  /* Increased right padding from 20px to 30px */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+
+       .scale-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.ph-display-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px; /* Added to prevent layout shift during scaling */
+}
+
+.current-ph {
+    text-align: center;
+    font-size: 1.2em;
+    margin: 0;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+      #ph-value {
+    display: inline-block;
+    transform-origin: center;
+    transition: all 0.5s ease-in-out;
+    padding: 0 4px; /* Added to prevent text from touching nearby elements when scaled */
+}
+
+
+.ph-scale-container {
+    position: relative;
+    width: 60px;
+    height: 400px;
+    margin: 0 auto;  /* Changed from 20px auto to 0 auto */
+    display: flex;
+    align-items: center;
+}
+      
+      .gradient-arrow {
+            position: absolute;
+            left: -80px;
+            height: 100%;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .arrow-line {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                #ff0000 0%,    /* Acidic - red */
+                #4caf50 50%,   /* Neutral - green */
+                #800080 100%   /* Basic - purple */
+            );
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .arrow-head-top {
+            position: absolute;
+            top: -10px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #ff0000; /* Acidic - red */
+        }
+
+        .arrow-head-bottom {
+            position: absolute;
+            bottom: -10px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid #800080; /* Basic - purple */
+        }
+
+        .arrow-labels {
+            position: absolute;
+            left: -80px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: #333;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .arrow-label {
+            transform: translateY(-50%);
+        }
+
+        .arrow-label.acidic {
+            color: #ff0000;
+            top: 0%;
+        }
+
+        .arrow-label.neutral {
+            color: #4caf50;
+            top: 50%;
+        }
+
+        .arrow-label.basic {
+            color: #800080;
+            top: 98%;
+        }
+
+        .ph-scale-outline {
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 4px solid #333;
+            border-radius: 12px;
+            pointer-events: none;
+            box-shadow: 
+                inset 0 4px 8px rgba(0,0,0,0.3),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+
+        .ph-scale {
+            height: 400px;
+            width: 60px;
+            position: relative;
+            background: linear-gradient(
+                to bottom,
+                #ff0000 0%,    /* pH 0 */
+                #ff4500 7.14%, /* pH 1 */
+                #ff6b00 14.28%, /* pH 2 */
+                #ff9900 21.42%, /* pH 3 */
+                #ffcc00 28.56%, /* pH 4 */
+                #ffeb3b 35.7%, /* pH 5 */
+                #cddc39 42.84%, /* pH 6 */
+                #4caf50 50%, /* pH 7 */
+                #009688 57.14%, /* pH 8 */
+                #00bcd4 64.28%, /* pH 9 */
+                #2196f3 71.42%, /* pH 10 */
+                #3f51b5 78.56%, /* pH 11 */
+                #673ab7 85.7%, /* pH 12 */
+                #9c27b0 92.84%, /* pH 13 */
+                #800080 100%   /* pH 14 */
+            );
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+   .ph-indicator {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: #333;
+    transform: translateY(-50%);
+    transition: top 0.5s;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Left triangle */
+.ph-indicator::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 50%;
+    top: 50%;
+    transform: translate(-100%, -50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 12px solid #333;
+}
+
+/* Right triangle */
+.ph-indicator::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    left: 50%;
+    top: 50%;
+    transform: translate(0%, -50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 12px solid #333;
+}
+
+        .ph-labels {
+            position: absolute;
+            right: -45px;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .ph-value-pairs {
+    position: absolute;
+    left: 120px;  /* Increased from 100px to 120px */
+    top: 0;
+    height: 103%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: -10px 0;
+}
+
+        .ph-value-pair {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            font-size: 12px;
+            color: #333;
+            height: 26.67px;
+            white-space: nowrap;
+        }
+
+        .current-ph {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        #container {
+            height: 270px;
+            margin: 50px auto;
+            overflow: show;
+            position: relative;
+            width: 248px;
+        }
+
+        #beaker {
+            height: 200px;
+            left: 14px;
+            bottom: 0;
+            width: 200px;
+            position: absolute;
+            background: rgba(255,255,255,0.1);
+        }
+      
+       .reset-button {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            z-index: 10;
+        }
+
+        .reset-button:hover {
+            background-color: #45a049;
+        }
+
+        #liquid {
+            background-color: #3C6;
+            border-radius: 0 0 20px 20px;
+            bottom: 0;
+            height: 138px;
+            overflow: hidden;
+            width: 180px;
+            position: absolute;
+            transition: background-color 0.5s, height 0.5s ease-in-out;
+            left: 10px;
+        }
+
+        #liquid.draining {
+            height: 0 !important;
+        }
+
+        #beaker-overlay {
+            position: absolute;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+         .bubble {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            animation: bubble 3s infinite linear;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        @keyframes bubble {
+            0% { 
+                bottom: 0;
+                opacity: 0.8;
+                transform: scale(0.8) translateX(0);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1) translateX(10px);
+            }
+            100% {
+                bottom: 160px;
+                opacity: 0;
+                transform: scale(1.2) translateX(-10px);
+            }
+        }
+      
+      .draining .bubble {
+            opacity: 0;
+        }
+
+       .ph-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    margin: 8px 0;
+    background: white;
+    border-radius: 8px;
+    cursor: move;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ph-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    background: white;
+}
+
+.ph-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+       .ph-item .tooltip {
+    visibility: hidden;
+    position: absolute;
+    right: 105%;  /* Changed from left: 105% to right: 105% */
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    width: max-content;
+    max-width: 200px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.ph-item:hover .tooltip {
+    visibility: visible;
+}
+
+/* Adjust the arrow to point from the right */
+.ph-item .tooltip::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 100%;  /* Changed from right: 100% to left: 100% */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent rgba(0, 0, 0, 0.8);  /* Adjusted border colors */
+}
+      
+      /* New styles for the explanation section */
+        .explanation-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .explanation-panel h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .explanation-panel p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .explanation-panel strong {
+            color: #333;
+        }
+
+        .explanation-panel ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .explanation-panel li {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .explanation-panel .math {
+            font-family: "Times New Roman", serif;
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+      
+      .explanation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding-bottom: 10px;
+}
+
+.explanation-header h3 {
+    margin: 0;
+}
+
+.toggle-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.toggle-button .arrow {
+    display: inline-block;
+    transition: transform 0.3s;
+    font-size: 16px;
+    color: #666;
+}
+
+.explanation-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.explanation-panel.expanded .explanation-content {
+    max-height: 500px; /* Adjust this value based on your content */
+}
+
+.explanation-panel.expanded .toggle-button .arrow {
+    transform: rotate(180deg);
+}
+      
+      .understanding-panel {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    border: 1px solid #e9ecef;
+}
+
+.understanding-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding-bottom: 10px;
+}
+
+.understanding-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.toggle-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+.toggle-button .arrow {
+    display: inline-block;
+    transition: transform 0.3s;
+    font-size: 16px;
+    color: #666;
+}
+
+.understanding-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out;
+}
+
+.understanding-panel.expanded .understanding-content {
+    max-height: 1000px; /* Adjust based on content */
+}
+
+.understanding-panel.expanded .toggle-button .arrow {
+    transform: rotate(180deg);
+}
+
+.understanding-content h3 {
+    margin: 15px 0 10px;
+    font-size: 16px;
+    color: #444;
+}
+
+.understanding-content p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+.understanding-content ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.understanding-content li {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.understanding-content strong {
+    color: #333;
+}
+      
+    </style>
+</head>
+<body>
+  <div class="grid-container">
+    <div class="header-container">
+    <h1>Welcome to the pH Simulator!</h1>
+    <p class="subtitle">This interactive tool helps you explore the pH scale and understand how different substances affect the acidity or basicity of a solution.</p>
+    
+    <div class="understanding-panel">
+        <div class="understanding-header" onclick="toggleUnderstanding()">
+            <h2>Understanding pH: Acidity, Alkalinity, and Water Quality</h2>
+            <button class="toggle-button">
+                <span class="arrow">▼</span>
+            </button>
+        </div>
+        <div class="understanding-content">
+            <p>
+                The <strong>pH scale</strong> is a measure of how acidic or basic (alkaline) a solution is, ranging from <strong>0 to 14</strong>. 
+                The scale is logarithmic, meaning each whole number change represents a tenfold difference in acidity. 
+                For example, a pH of 4 is <strong>ten times more acidic</strong> than a pH of 5.
+            </p>
+            <ul>
+                <li><strong>Acidic solutions</strong> (pH < 7) have a higher concentration of hydrogen ions (H⁺). 
+                    These include substances like lemon juice and vinegar.</li>
+                <li><strong>Neutral solutions</strong> (pH = 7) have a balanced concentration of hydrogen ions (H⁺) 
+                    and hydroxide ions (OH⁻), like pure water.</li>
+                <li><strong>Basic (alkaline) solutions</strong> (pH > 7) have a higher concentration of hydroxide ions (OH⁻). 
+                    Examples include baking soda and drain cleaner.</li>
+            </ul>
+            
+            <h3>Why Does pH Matter?</h3>
+            <p>pH plays a crucial role in various fields, including <strong>biology</strong>, <strong>chemistry</strong>, 
+               and <strong>environmental science</strong>.</p>
+            <ul>
+                <li>In the <strong>human body</strong>, blood pH must be maintained between 7.35 and 7.45 for proper function.</li>
+                <li>In <strong>agriculture</strong>, soil pH affects plant growth and nutrient availability.</li>
+                <li>In <strong>water quality</strong>, pH levels can impact aquatic life and the effectiveness of water treatment processes.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>How to Use the Simulator:</h2>
+    <ol>
+        <li><strong>Choose an Item:</strong> On the left panel, you'll see a list of common substances, each with its pH value. 
+            Drag an item (e.g., Lemon Juice or Drain Cleaner) and drop it into the beaker in the middle panel.</li>
+        <li><strong>Observe the Changes:</strong>
+            <ul>
+                <li>The <strong>pH Value</strong> in the right panel will update based on the substance you added.</li>
+                <li>The <strong>Liquid Color</strong> in the beaker will change to reflect the new pH, with red indicating 
+                    acidic solutions and blue/purple indicating basic (alkaline) solutions.</li>
+                <li>The <strong>pH Indicator</strong> on the scale will move up or down, showing where the new pH falls on the 0-14 scale.</li>
+            </ul>
+        </li>
+    </ol>
+</div>
+        <div class="panel">
+            <h3>pH Items</h3>
+            <div id="ph-items"></div>
+        </div>
+        
+         <div class="panel">
+            <div id="container">
+                <button class="reset-button">Reset pH</button>
+                <div id="beaker">
+                    <div id="liquid">
+                        <div class="bubble"></div>
+                        <div class="bubble"></div>
+                        <div class="bubble"></div>
+                        <div class="bubble"></div>
+                        <div class="bubble"></div>
+                    </div>
+                    <img 
+                        id="beaker-overlay" 
+                        src="https://i.imgur.com/DShHoPL.png" 
+                        alt="Beaker overlay"
+                        style="width: 225px; height: 230px; top: -20px; left: -18px;"
+                    >
+                </div>
+            </div>
+        </div>
+
+       <div class="panel">
+    <div class="ph-display-panel">
+        <div class="current-ph">Current pH: <span id="ph-value">7.0</span></div>
+    </div>
+    <div class="scale-panel">
+        <div class="ph-scale-container">
+            <div class="gradient-arrow">
+                <div class="arrow-line"></div>
+                <div class="arrow-head-top"></div>
+                <div class="arrow-head-bottom"></div>
+                <div class="arrow-labels">
+                    <div class="arrow-label acidic" style="position: absolute; top: 0;">Acidic</div>
+                    <div class="arrow-label neutral" style="position: absolute; top: 50%; transform: translateY(-50%);">Neutral</div>
+                    <div class="arrow-label basic" style="position: absolute; bottom: 0;">Basic</div>
+                </div>
+            </div>
+            <div class="ph-scale">
+                <div class="ph-indicator"></div>
+            </div>
+            <div class="ph-scale-outline"></div>
+            <div class="ph-labels">
+                <span>0</span>
+                <span>1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>4</span>
+                <span>5</span>
+                <span>6</span>
+                <span>7</span>
+                <span>8</span>
+                <span>9</span>
+                <span>10</span>
+                <span>11</span>
+                <span>12</span>
+                <span>13</span>
+                <span>14</span>
+            </div>
+            <div class="ph-value-pairs">
+                <div class="ph-value-pair">1 (10⁰)</div>
+                <div class="ph-value-pair">0.1 (10⁻¹)</div>
+                <div class="ph-value-pair">0.01 (10⁻²)</div>
+                <div class="ph-value-pair">0.001 (10⁻³)</div>
+                <div class="ph-value-pair">0.0001 (10⁻⁴)</div>
+                <div class="ph-value-pair">0.00001 (10⁻⁵)</div>
+                <div class="ph-value-pair">0.000001 (10⁻⁶)</div>
+                <div class="ph-value-pair">0.0000001 (10⁻⁷)</div>
+                <div class="ph-value-pair">0.00000001 (10⁻⁸)</div>
+                <div class="ph-value-pair">0.000000001 (10⁻⁹)</div>
+                <div class="ph-value-pair">0.0000000001 (10⁻¹⁰)</div>
+                <div class="ph-value-pair">0.00000000001 (10⁻¹¹)</div>
+                <div class="ph-value-pair">0.000000000001 (10⁻¹²)</div>
+                <div class="ph-value-pair">0.0000000000001 (10⁻¹³)</div>
+                <div class="ph-value-pair">0.00000000000001 (10⁻¹⁴)</div>
+            </div>
+        </div>
+    </div>
+    <div class="explanation-panel">
+        <div class="explanation-header" onclick="toggleExplanation()">
+            <h3>How Does the Calculation Work?</h3>
+            <button class="toggle-button">
+                <span class="arrow">▼</span>
+            </button>
+        </div>
+        <div class="explanation-content">
+            <p>
+                In this simulator, the pH is updated based on the <strong>concentration of hydrogen ions (H⁺)</strong>. 
+                The pH scale is <strong>logarithmic</strong>, meaning each whole number change reflects a 
+                <strong>tenfold difference</strong> in hydrogen ion concentration.
+            </p>
+            <ol>
+                <li>
+                    <strong>Substance pH</strong>: Each substance has a specific pH value tied to its hydrogen ion concentration. 
+                    For example, a pH of 2 corresponds to <span class="math">10⁻²</span> M (0.01 M). 
+                    A change from pH 2 to pH 3 means a tenfold decrease in acidity.
+                </li>
+                <li>
+                    <strong>Combining Concentrations</strong>: When a new substance is added, the simulator calculates 
+                    the <strong>average hydrogen ion concentration</strong>, assuming equal volumes.
+                </li>
+                <li>
+                    <strong>New pH Calculation</strong>: The new pH is determined using:<br>
+                    <span class="math">pH = -log₁₀(H⁺ concentration)</span>
+                </li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+    <script>
+        const phItems = [
+            {
+                name: 'Battery Acid',
+                ph: 0,
+                img: 'https://i.imgur.com/QqsyjqD.png',
+                description: 'Extremely acidic and corrosive substance found in car batteries. pH: 0'
+            },
+            {
+                name: 'Stomach Acid',
+                ph: 1,
+                img: 'https://i.imgur.com/Lo5ffbP.png',
+                description: 'Digestive fluid in the stomach. pH: 1'
+            },
+            {
+                name: 'Lemon Juice',
+                ph: 2,
+                img: 'https://i.imgur.com/mof6nJt.png',
+                description: 'Citrus juice with high citric acid content. pH: 2'
+            },
+            {
+                name: 'Vinegar',
+                ph: 3,
+                img: 'https://i.imgur.com/JMTUXmd.png',
+                description: 'Acetic acid solution used in cooking. pH: 3'
+            },
+            {
+                name: 'Tomato Juice',
+                ph: 4,
+                img: 'https://i.imgur.com/GZocVOG.png',
+                description: 'Slightly acidic vegetable juice. pH: 4'
+            },
+            {
+                name: 'Coffee',
+                ph: 5,
+                img: 'https://i.imgur.com/VKg5HP2.png',
+                description: 'Brewed coffee, mildly acidic. pH: 5'
+            },
+            {
+                name: 'Cola',
+                ph: 6,
+                img: 'https://i.imgur.com/XKhmsnT.png',
+                description: 'Carbonated soft drink with phosphoric acid. pH: 6'
+            },
+            {
+                name: 'Water',
+                ph: 7,
+                img: 'https://i.imgur.com/CytV3j0.png',
+                description: 'Pure water, neutral pH. pH: 7'
+            },
+            {
+                name: 'Milk',
+                ph: 8,
+                img: 'https://i.imgur.com/RGBlKiq.png',
+                description: 'Fresh milk, slightly basic. pH: 8'
+            },
+            {
+                name: 'Drain Cleaner',
+                ph: 14,
+                img: 'https://i.imgur.com/ayvYqj4.png',
+                description: 'Highly basic cleaning solution. pH: 14'
+            }
+        ];
+
+      function getPHColor(ph) {
+    if (ph <= 1) return '#ff0000';
+    if (ph <= 2) return '#ff4500';
+    if (ph <= 3) return '#ff6b00';
+    if (ph <= 4) return '#ff9900';
+    if (ph <= 5) return '#ffcc00';
+    if (ph <= 6) return '#ffeb3b';
+    if (ph <= 7) return '#4caf50';
+    if (ph <= 8) return '#009688';
+    if (ph <= 9) return '#00bcd4';
+    if (ph <= 10) return '#2196f3';
+    if (ph <= 11) return '#3f51b5';
+    if (ph <= 12) return '#673ab7';
+    if (ph <= 13) return '#9c27b0';
+    return '#800080';
+}
+
+let currentPH = 7;
+let currentConcentration = Math.pow(10, -currentPH);
+
+function updatePH(newPH) {
+    // Calculate the new substance's hydrogen ion concentration
+    const newConcentration = Math.pow(10, -newPH);
+
+    // Update the total hydrogen ion concentration
+    const combinedConcentration = (currentConcentration + newConcentration) / 2;
+
+    // Calculate the new pH from the combined concentration
+    currentPH = -Math.log10(combinedConcentration);
+    currentConcentration = combinedConcentration;
+
+    // Get color based on pH value
+    const color = getPHColor(currentPH);
+    
+    // Calculate size scaling based on distance from neutral (pH 7)
+    // Scale from 1 (at pH 7) to 1.5 (at pH 0 or 14)
+    const distanceFromNeutral = Math.abs(currentPH - 7);
+    const scale = 1 + (distanceFromNeutral / 14) * 0.5;
+    
+    // Update the pH display with dynamic styling
+
+    const phDisplay = document.getElementById('ph-value');
+    phDisplay.textContent = currentPH.toFixed(2);
+    phDisplay.style.color = color;
+    phDisplay.style.transform = `scale(${scale})`;
+    phDisplay.style.textShadow = `1px 1px 2px rgba(0, 0, 0, 0.15)`; // More subtle shadow
+    phDisplay.style.transition = 'all 0.5s ease-in-out';
+
+    // Update other UI elements
+    const liquid = document.getElementById('liquid');
+    liquid.style.backgroundColor = color;
+
+    const indicator = document.querySelector('.ph-indicator');
+    indicator.style.top = `${(currentPH / 14) * 100}%`;
+}
+
+
+// Initialize pH items with smooth drag behavior
+const phItemsContainer = document.getElementById('ph-items');
+phItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'ph-item';
+    div.draggable = true;
+    
+    const img = document.createElement('img');
+    img.src = item.img;
+    img.alt = item.name;
+    
+    const text = document.createElement('span');
+    text.textContent = item.name;
+    
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip';
+    tooltip.textContent = item.description;
+    
+    div.appendChild(img);
+    div.appendChild(text);
+    div.appendChild(tooltip);
+    
+    // Simplified drag handlers
+    div.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('ph', item.ph);
+        tooltip.style.visibility = 'hidden';
+    });
+    
+    div.addEventListener('dragend', e => {
+        tooltip.style.visibility = '';
+    });
+    
+    phItemsContainer.appendChild(div);
+});
+
+// Setup drop zone
+const beaker = document.getElementById('beaker');
+beaker.addEventListener('dragover', e => {
+    e.preventDefault();
+});
+
+beaker.addEventListener('drop', e => {
+    e.preventDefault();
+    const ph = parseFloat(e.dataTransfer.getData('ph'));
+    updatePH(ph);
+});
+
+function resetPH() {
+    const liquid = document.getElementById('liquid');
+    const bubbles = document.querySelectorAll('.bubble');
+    const phDisplay = document.getElementById('ph-value');
+    
+    // Start draining animation
+    liquid.classList.add('draining');
+    
+    // After draining animation completes, reset pH and start filling
+    setTimeout(() => {
+        currentPH = 7;
+        currentConcentration = Math.pow(10, -7);
+        
+        // Reset pH display with neutral styling
+        phDisplay.textContent = '7.00';
+        phDisplay.style.color = '#4caf50';
+        phDisplay.style.transform = 'scale(1)';
+        phDisplay.style.textShadow = '2px 2px 4px rgba(0, 0, 0, 0.3)';
+        
+        // Reset color
+        liquid.style.backgroundColor = '#4caf50';
+        
+        // Reset indicator position
+        const indicator = document.querySelector('.ph-indicator');
+        indicator.style.top = '50%';
+        
+        // Start filling animation
+        liquid.classList.remove('draining');
+        
+        // Reset bubbles
+        bubbles.forEach(bubble => {
+            bubble.style.left = `${Math.random() * 160}px`;
+            bubble.style.animationDelay = `${Math.random() * 3000}ms`;
+            bubble.style.animationDuration = `${2000 + Math.random() * 2000}ms`;
+        });
+    }, 500);
+}
+
+        // Add reset button event listener
+        document.querySelector('.reset-button').addEventListener('click', resetPH);     
+      
+// Initialize bubbles with random positions
+document.querySelectorAll('.bubble').forEach(bubble => {
+    bubble.style.left = `${Math.random() * 160}px`;
+    bubble.style.animationDelay = `${Math.random() * 3000}ms`;
+    bubble.style.animationDuration = `${2000 + Math.random() * 2000}ms`;
+});
+
+// Initialize pH display
+window.onload = function() {
+    updatePH(7);
+};
+    
+function toggleExplanation() {
+    const panel = document.querySelector('.explanation-panel');
+    panel.classList.toggle('expanded');
+}
+
+// Initialize the panel as collapsed
+document.addEventListener('DOMContentLoaded', function() {
+    const panel = document.querySelector('.explanation-panel');
+    // Removed .add('expanded') so it starts collapsed
+});
+      
+function toggleUnderstanding() {
+    const panel = document.querySelector('.understanding-panel');
+    panel.classList.toggle('expanded');
+}
+
+// Initialize the panel as collapsed
+document.addEventListener('DOMContentLoaded', function() {
+    const panel = document.querySelector('.understanding-panel');
+    // Removed .add('expanded') so it starts collapsed
+});
+    </script>
+</body>
+</html>
